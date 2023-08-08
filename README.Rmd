@@ -1,0 +1,94 @@
+---
+title: "Notes about Public Service Pension Plan (PSPP)"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This report quantifies the net present value of the Public Service Pension Plan (PSPP), providing a monetary resolution to the contentious debates surrounding its benefits for public servants. Is PSPP as valuable as you there?  
+
+## Scenario
+
+Assume Jack joined the public service at 23 in 2020, and plans to retire at 55. Suppose he will live until 85. How much are PSPP future payments worth in today's dollar? Assume the highest average income over 5 consecutive years is $75,000.
+
+## Use PSPP Pension Calculator:
+
+We obtain the payment schedule for the above scenario using the [pension calculator](http://apppen-penapp.tpsgc-pwgsc.gc.ca/penavg-penben_prod/cpr-pbc/accueil-welcome/prep.action) from the PSPC website, as follows:
+
+```{r payments,echo=FALSE,warning=FALSE}
+suppressPackageStartupMessages(library("janitor"))
+payment_df = read.csv("data/payment_df.csv") %>% janitor::clean_names() 
+names(payment_df) = c("Description", "Effective From Date", 
+                      "Effective To Date","Type","Monthly Payments", 
+                      "Reduction multiplier","Monthly Reduced Payments")
+
+library(knitr)
+kable(payment_df,caption="Note that results from the pension calculator is 
+      saved as 'Pension benefits options report.pdf' in the 'data' folder.")
+```
+
+## Create a Monthly Payment Schedule
+We do some data joins to create a table containing PSPP's monthly payment schedule.
+
+```{r payment_schedule,warning=FALSE}
+suppressPackageStartupMessages(library("dplyr"))
+
+# create a data frame with all payment dates
+start_date = "2052-03-01"
+end_date = "2082-03-01"
+Date <- as.POSIXlt(seq(as.Date(start_date), as.Date(end_date), by="month"))
+date_df = data.frame(date=Date)
+
+# load a data frame with results from PSPC's pension calculator
+payment_df = read.csv("data/payment_df.csv") %>% janitor::clean_names() 
+payment_df$effective_from_date = as.Date(payment_df$effective_from_date)
+payment_df$effective_to_date = as.Date(payment_df$effective_to_date)
+
+# join tables to create a table with pension payments in each month
+payment_schedule_df = date_df %>% left_join(payment_df, join_by(date >= effective_from_date , 
+                                                                date <= effective_to_date))  
+payment_schedule_df$monthly = as.numeric(payment_schedule_df$monthly)
+
+#create a table summarizing payments by month
+payment_summary_df = payment_schedule_df %>% 
+    group_by(date) %>% 
+    summarise(total_payment = sum(monthly))
+
+#     The result is a table that contains retirement payments from the PSPP,
+## starting from 2052-03-01 (retirement date at 55) to 2082-03-01 (age 85): 
+payment_summary_df 
+```
+
+## Calculate the Net Present Value (NPV) of PSPP
+Now, we want to figure out how much the pension payments are worth in today's dollar*.
+```{r npv,warning=FALSE}
+suppressPackageStartupMessages(library("FinancialMath"))
+suppressPackageStartupMessages(library("scales"))
+suppressPackageStartupMessages(library("lubridate"))
+
+pension_npv = NPV(cf0=0, cf=payment_summary_df$total_payment, 
+          times=-interval(payment_summary_df$date, mdy(03012023)) %/% months(1), i=0)
+
+cat(paste0("The PSPP's NPV is:",dollar(pension_npv)," (",mdy(03012023)," dollar)"))
+
+```
+## How can one invest to generate same cashflows as PSPP?
+```{r reinvestment,warning=FALSE}
+rate_vector = seq(0,0.15,0.01) #a vector of annual discount rate
+pension_value_vector = c()
+for (rate in rate_vector){
+    curr_value = NPV(cf0=0, cf=payment_summary_df$total_payment, 
+        times=-interval(payment_summary_df$date, mdy(03012023)) %/% months(1), i=rate/12)
+    pension_value_vector = c(pension_value_vector,curr_value)
+}
+return_df = data.frame(annual_discount_rate = rate_vector, pension_npv=pension_value_vector)
+return_df$pension_npv = dollar(return_df$pension_npv )
+return_df$monthly_discount_rate = percent(return_df$annual_discount_rate/12)
+return_df$annual_discount_rate = percent(return_df$annual_discount_rate)
+names(return_df) = c("ROI (Annual)","Cash required for investment (2023 dollar)","ROI (Monthly)")
+kable(return_df)
+```

@@ -1,0 +1,5 @@
+﻿Name,Effective from date,Effective to date,Type,Monthly (unreduced),Multiplier,Monthly
+Lifetime pension,2062-03-01,9999-01-01,Deferred Annuity,"$2,867.68 ",1,2867.68
+Bridge benefit (Up to age 65),2062-03-01,2062-03-31,Deferred Annuity,"$1,101.43 ",1,1101.43
+Lifetime pension,2052-03-01,9999-01-01,Annual Allowance,"$1,875.41 ",75%,1406.56
+Bridge benefit (Up to age 65),2052-03-01,2062-03-31,Annual Allowance,"$1,101.43 ",75%,826.07
