@@ -6,7 +6,7 @@ Notes about Public Service Pension Plan (PSPP)
 This report quantifies the net present value of the Public Service
 Pension Plan (PSPP), providing a monetary resolution to the contentious
 debates surrounding its benefits for public servants. Is PSPP as
-valuable as you there?
+valuable as you think?
 
 ## Scenario
 
