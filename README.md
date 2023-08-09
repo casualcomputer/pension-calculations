@@ -10,10 +10,10 @@ valuable as you think?
 
 ## Scenario 1: always a public servant
 
-Assume Jack joined the public service at 23 on 2020-03-11, and plans to
-retire at 55. Suppose he will live until 85. How much are PSPP future
-payments worth in today’s dollar? Assume the highest average income over
-5 consecutive years is \$75,000.
+Jack, who was born on 1997-03-01, joined the public service at 23 on
+2020-05-31. Suppose he plans to retire at 55 and will live until 85. How
+much are PSPP future payments worth in today’s dollar? Assume his
+highest average income over 5 consecutive years is \$75,000.
 
 ### Use PSPP Pension Calculator:
 
